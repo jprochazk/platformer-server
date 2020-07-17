@@ -64,10 +64,6 @@ void movement::update() {
 
 	registry.view<body>().each(
 	[&](const entt::entity& e, body& body) {
-		if (body.mtype == body::mtype::WALK) {
-			body.vel.y += body.gravity;
-			body.vel.y = glm::min(body.vel.y, body.gravity * 15);
-		}
 		body.lastPos = body.pos;
 		body.pos += body.vel;
 	});
@@ -75,6 +71,11 @@ void movement::update() {
 	registry.view<body, collider>().each(
 	[&](const entt::entity& e, body& body, collider& col) {
 		using namespace collision;
+
+		if (body.mtype == body::mtype::WALK) {
+			body.vel.y += body.gravity;
+			body.vel.y = glm::min(body.vel.y, body.gravity * 15);
+		}
 
 		col.box.center = body.pos;
 		auto& zone = map.get_zone(e);

@@ -3,14 +3,14 @@ boost/1.72.0
 nlohmann_json/3.7.3
 libpqxx/7.0.6
 spdlog/1.5.0
-gtest/1.10.0
 concurrentqueue/1.0.1
 entt/3.4.0
 magic_enum/0.6.6
 glm/0.9.9.8
+doctest/2.4.0
 
 [options]
 spdlog:header_only=True
 
 [generators]
-premake
+cmake
