@@ -1,0 +1,16 @@
+# Binaries
+**/bin/
+build
+
+# conan
+conan.lock
+conanbuildinfo*
+conaninfo.txt
+graph_info.json
+
+# visual studio files
+.vs/
+**.sln
+**.vcxproj
+**.vcxproj.filters
+**.vcxproj.user
