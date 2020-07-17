@@ -1,8 +1,8 @@
 [requires]
-boost/1.72.0
-nlohmann_json/3.7.3
+boost/1.73.0
+nlohmann_json/3.8.0
 libpqxx/7.1.2
-spdlog/1.5.0
+spdlog/1.6.1
 concurrentqueue/1.0.1
 entt/3.4.0
 magic_enum/0.6.6

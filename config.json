@@ -1,14 +1,13 @@
 {
-	"server" : {
-		"address": "127.0.0.1:8001",
-		"update_hz": 60
-	},
-
-	"database": {
-		"name": "gserverdb",
-		"host": "localhost",
-		"port": 5432,
-		"user": "postgres",
-		"password": "root"
-	}
+    "server": {
+        "address": "127.0.0.1:8001",
+        "update_hz": 60
+    },
+    "database": {
+        "name": "gserverdb",
+        "host": "172.18.223.255",
+        "port": 5432,
+        "user": "postgres",
+        "password": "root"
+    }
 }
