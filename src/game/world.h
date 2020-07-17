@@ -55,9 +55,13 @@ class registry : public entt::basic_registry<Entity>
 
 class world
 {
+    friend class world_builder;
+
   public:
     world();
-    world(database::settings settings, json map_data);
+    world(std::optional<database::settings> settings = {},
+          std::optional<json> map_data = {});
+
     using entity_t = entt::entity;
     using registry_t = registry<entity_t>;
     using dispatcher_t = game::event::dispatcher;
@@ -67,23 +71,7 @@ class world
                     std::shared_ptr<system_base> system);
 
     template<typename System>
-    std::shared_ptr<System> get_system(const std::string& name)
-    {
-        auto it = systems.find(name);
-        debug_assert(it != systems.end(), "System \"{}\" does not exist", name);
-        auto& [_, system] = *it;
-
-#ifndef NDEBUG
-        auto ptr = std::dynamic_pointer_cast<System>(system);
-        debug_assert(static_cast<bool>(ptr),
-                     "System \"{}\" is not of type \"{}\"",
-                     name,
-                     boost::typeindex::type_id<System>().pretty_name());
-#else
-        auto ptr = std::static_pointer_cast<System>(system);
-#endif
-        return ptr;
-    }
+    std::shared_ptr<System> get_system(const std::string& name);
 
     void remove_system(const std::string& name);
     void update();
@@ -101,5 +89,25 @@ class world
     map_t map;
     tsl::ordered_map<std::string, std::shared_ptr<system_base>> systems;
 };
+
+template<typename System>
+std::shared_ptr<System>
+world::get_system(const std::string& name)
+{
+    auto it = systems.find(name);
+    debug_assert(it != systems.end(), "System \"{}\" does not exist", name);
+    auto& [_, system] = *it;
+
+#ifndef NDEBUG
+    auto ptr = std::dynamic_pointer_cast<System>(system);
+    debug_assert(static_cast<bool>(ptr),
+                 "System \"{}\" is not of type \"{}\"",
+                 name,
+                 boost::typeindex::type_id<System>().pretty_name());
+#else
+    auto ptr = std::static_pointer_cast<System>(system);
+#endif
+    return ptr;
+}
 
 } // namespace game

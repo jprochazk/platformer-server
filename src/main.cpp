@@ -105,8 +105,7 @@ start_network(net::io_context& ioc,
 std::shared_ptr<game::world>
 init_world()
 {
-    auto world =
-      std::make_shared<game::world>(get_db_settings(), get_map_data());
+    auto world = std::make_shared<game::world>(std::nullopt, get_map_data());
     world->add_system("session",
                       std::make_shared<game::system::session>(world));
     world->add_system("movement",

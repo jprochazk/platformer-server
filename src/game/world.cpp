@@ -12,13 +12,20 @@ world::world()
   , systems{}
 {}
 
-world::world(database::settings settings, json map_data)
+world::world(std::optional<database::settings> settings,
+             std::optional<json> map_data)
   : registry{}
-  , database{ std::make_shared<database::connection>(settings) }
+  , database{}
   , dispatcher{}
-  , map{ map::load(map_data) }
+  , map{}
   , systems{}
-{}
+{
+    if (settings)
+        database = std::make_shared<database::connection>(*settings);
+
+    if (map_data)
+        map = map::load(*map_data);
+}
 
 void
 world::add_system(const std::string& name, std::shared_ptr<system_base> system)
