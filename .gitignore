@@ -8,6 +8,10 @@ conanbuildinfo*
 conaninfo.txt
 graph_info.json
 
+# clang
+compile_commands.json
+.clangd
+
 # visual studio files
 .vs/
 **.sln
