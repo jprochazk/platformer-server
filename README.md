@@ -4,15 +4,18 @@ This repository holds the backend of the project, for the front-end, see [this r
 
 ### Goals
 
-Write a game server with the following features:
+Write a game server and build a 2d platformer in it.
 
-* Authentication (one-time JWT)
-* Persistence (PostgreSQL)
-* ECS
-* LUA scripting
+Currently, the server has the following features:
+
+* Networking (WebSockets)
 * JSON/CBOR serialization
-
-And build a 2d platformer in it.
+* PostgreSQL database connection with asynchronous queries
+    * Currently implemented using boost::async, will be implemented using boost.asio in the future
+* JSON configuration files
+* Exception-safe packet handling
+* AABB collision detection + resolution
+* Game state synchronization
 
 ##### Requirements
 

@@ -6,8 +6,8 @@ namespace collision {
 // Implementation specific functionality
 namespace detail {
 // Machine epsilon (smallest difference between two T)
-template<typename T>
-constexpr T epsilon = std::numeric_limits<T>::epsilon();
+// template<typename T>
+// constexpr T epsilon = std::numeric_limits<T>::epsilon();
 
 inline double
 sign(const double& value)
