@@ -24,17 +24,42 @@ Currently, the server has the following features:
     * MSVC 14.11+ / Visual Studio 2017+
     * Xcode 10+
     * GCC 9+
-* CMake 3.17+
 * Conan 1.26.0+
 
 #### Instructions
 
-This project uses **conan** for package management and **cmake** for generating project files or building. Make sure you have both installed on your system.
+This project uses **conan** for package management and **premake** for generating project files.
 
-To build on Linux, simply run `build.sh`. This will generate a `server` executable in `build/bin`, which you can run by doing `build/bin/server`.
+To build the project
 
+on linux:
+```
+$ ./configure.sh <ACTION> [--build=BUILD_TYPE]
+```
+
+on windows:
+```
+> .\configure.bat <ACTION> [--build=BUILD_TYPE]
+```
+
+Where `ACTION` is any of the actions listed [here](https://github.com/premake/premake-core/wiki/Using-Premake#using-premake-to-generate-project-files), and `BUILD_TYPE` is `release` (default) or `debug`.
+
+For example, to generate Unix makefiles, build, and run the executable on Linux, you would do:
+```
+$ chmod +x configure.sh
+$ chmod +x premake/premake5
+$ ./configure.sh gmake
+$ make -j 8
+$ bin/server
+```
+
+To run on Windows (visual studio 2019), you would:
+```
+> .\configure.bat vs2019
+```
+Then open the generated .sln file, and press F5 to build and run.+
 
 #### TODO
 
 * Write more info about the project in this readme file
-* Use CMake for unit testing.
+* Run tests using doctest + premake

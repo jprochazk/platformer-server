@@ -58,8 +58,8 @@ workspace "platformer-server"
 	project "server"
 		kind "ConsoleApp"
 
-		targetdir (ROOT_PATH .. "/bin/%{prj.name}")
-		objdir (ROOT_PATH .. "/bin/%{prj.name}/obj")
+		targetdir (ROOT_PATH .. "/bin/")
+		objdir (ROOT_PATH .. "/bin/obj")
 
 		files { 
 			ROOT_PATH .. "/src/**.h",
