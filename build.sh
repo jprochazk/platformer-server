@@ -25,8 +25,8 @@ if [ ! -d build ]; then
 fi
 
 case "$build_type" in
-    debug)      cd build && cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug && make -j 8 ;;
-    release)    cd build && cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release && make -j 8 ;;
+    debug)      cd build && cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug && make -j $(nproc) ;;
+    release)    cd build && cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release && make -j $(nproc) ;;
     *)          echo "invalid build type: $build_type"
                 echo "must be one of: debug, release"
                 ;;
