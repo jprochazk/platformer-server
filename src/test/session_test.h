@@ -60,8 +60,7 @@ TEST(session, connection)
     auto& registry = world->get_registry();
     // registry should contain one entity with component session
     size_t entity_count = 0;
-    registry.view<component::session>().each(
-      [&](const entt::entity&, component::session&) { ++entity_count; });
+    registry.view<component::session>().each([&](const entt::entity&, component::session&) { ++entity_count; });
     EXPECT_EQ(entity_count, static_cast<size_t>(1));
 
     // we should have also received a packet
@@ -94,8 +93,7 @@ TEST(session, disconnection)
     auto& registry = world->get_registry();
     // registry should contain no entities
     size_t entity_count = 0;
-    registry.view<component::session>().each(
-      [&](const entt::entity&, component::session&) { ++entity_count; });
+    registry.view<component::session>().each([&](const entt::entity&, component::session&) { ++entity_count; });
     EXPECT_EQ(entity_count, static_cast<size_t>(0));
 }
 
@@ -119,8 +117,7 @@ TEST(session, message)
     auto& registry = world->get_registry();
     // registry should contain one entity with component session
     size_t entity_count = 0;
-    registry.view<component::session>().each(
-      [&](const entt::entity&, component::session&) { ++entity_count; });
+    registry.view<component::session>().each([&](const entt::entity&, component::session&) { ++entity_count; });
     EXPECT_EQ(entity_count, static_cast<size_t>(1));
 
     // handler_table should've had get() called once

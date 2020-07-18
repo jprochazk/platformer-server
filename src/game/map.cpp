@@ -8,10 +8,8 @@ namespace collision {
 void
 from_json(const json& json, AABB& aabb)
 {
-    aabb.center = Vec{ json["center"]["x"].get<double>(),
-                       json["center"]["y"].get<double>() };
-    aabb.half =
-      Vec{ json["half"]["x"].get<double>(), json["half"]["y"].get<double>() };
+    aabb.center = Vec{ json["center"]["x"].get<double>(), json["center"]["y"].get<double>() };
+    aabb.half = Vec{ json["half"]["x"].get<double>(), json["half"]["y"].get<double>() };
 }
 } // namespace collision
 } // namespace game
@@ -36,12 +34,10 @@ zone::load(json data)
 {
     auto id = data["id"].get<uint32_t>();
     auto name = data["name"].get<std::string>();
-    auto bounds = collision::Vec{ data["bounds"]["x"].get<double>(),
-                                  data["bounds"]["y"].get<double>() };
+    auto bounds = collision::Vec{ data["bounds"]["x"].get<double>(), data["bounds"]["y"].get<double>() };
     auto objects = std::vector<zone::object>{ data["objects"].size() };
     for (const auto& [k, v] : data["objects"].items()) {
-        objects.push_back(
-          static_cast<zone::object>(static_cast<collision::AABB>(v["box"])));
+        objects.push_back(static_cast<zone::object>(static_cast<collision::AABB>(v["box"])));
     }
 
     return std::make_pair(id, zone{ name, bounds, objects });
@@ -143,15 +139,13 @@ map::get_zone(zone::id id) const
 bool
 map::valid(zone::id id) const
 {
-    return id != std::numeric_limits<zone::id>::max() &&
-           zones.find(id) != zones.end();
+    return id != std::numeric_limits<zone::id>::max() && zones.find(id) != zones.end();
 }
 
 zone::id
 map::get_id(entt::entity e) const
 {
     auto it = zone_ids.find(e);
-    return it != zone_ids.end() ? it->second
-                                : std::numeric_limits<zone::id>::max();
+    return it != zone_ids.end() ? it->second : std::numeric_limits<zone::id>::max();
 }
 } // namespace game

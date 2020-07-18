@@ -20,8 +20,7 @@ TEST(packet_handler_test, move_input)
 
     default_handler_table table;
 
-    auto handler =
-      table.get(common::to_underlying(network::client::opcode::INPUT));
+    auto handler = table.get(common::to_underlying(network::client::opcode::INPUT));
 
     auto vel_case = [&](uint8_t input, float e_x, float e_y) {
         json j = { { "f", input } };

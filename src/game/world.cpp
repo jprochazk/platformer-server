@@ -31,8 +31,7 @@ world::world()
   , systems{}
 {}
 
-world::world(std::optional<database::settings> settings,
-             std::optional<json> map_data)
+world::world(std::optional<database::settings> settings, std::optional<json> map_data)
   : registry{}
   , database{}
   , dispatcher{}
@@ -49,9 +48,7 @@ world::world(std::optional<database::settings> settings,
 void
 world::add_system(const std::string& name, std::shared_ptr<system_base> system)
 {
-    debug_assert(systems.find(name) == systems.end(),
-                 "System \"{}\" already exists",
-                 name);
+    debug_assert(systems.find(name) == systems.end(), "System \"{}\" already exists", name);
 
     systems.insert(std::make_pair(name, system));
 }

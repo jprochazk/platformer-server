@@ -35,8 +35,7 @@ TEST(sync, update)
 
     auto& registry = world->get_registry();
     auto entity = registry.create();
-    registry.emplace<component::session>(entity,
-                                         component::session{ 0, socket });
+    registry.emplace<component::session>(entity, component::session{ 0, socket });
     world->get_dispatcher().publish<event::entity_join>(entity);
 
     world->update();

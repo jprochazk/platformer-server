@@ -38,10 +38,7 @@ class client_handler
 class client : public std::enable_shared_from_this<client>
 {
   public:
-    client(net::io_context& ioc,
-           std::string_view host,
-           std::string_view port,
-           std::shared_ptr<client_handler> chandler)
+    client(net::io_context& ioc, std::string_view host, std::string_view port, std::shared_ptr<client_handler> chandler)
       : host_(host)
       , port_(port)
       , ws_(net::make_strand(ioc))
@@ -57,24 +54,18 @@ class client : public std::enable_shared_from_this<client>
     {
         tcp::resolver resolver(ws_.get_executor());
 
-        resolver.async_resolve(
-          host_,
-          port_,
-          beast::bind_front_handler(&client::on_resolve, shared_from_this()));
+        resolver.async_resolve(host_, port_, beast::bind_front_handler(&client::on_resolve, shared_from_this()));
     }
 
     void send(std::vector<uint8_t> data)
     {
-        net::post(ws_.get_executor(),
-                  beast::bind_front_handler(
-                    &client::on_send, shared_from_this(), std::move(data)));
+        net::post(ws_.get_executor(), beast::bind_front_handler(&client::on_send, shared_from_this(), std::move(data)));
     }
 
     void close()
     {
-        ws_.async_close(
-          beast::websocket::close_code::normal,
-          beast::bind_front_handler(&client::on_close, shared_from_this()));
+        ws_.async_close(beast::websocket::close_code::normal,
+                        beast::bind_front_handler(&client::on_close, shared_from_this()));
     }
 
   private:
@@ -85,33 +76,25 @@ class client : public std::enable_shared_from_this<client>
 
         beast::get_lowest_layer(ws_).expires_after(std::chrono::seconds(10));
 
-        beast::get_lowest_layer(ws_).async_connect(
-          results,
-          beast::bind_front_handler(&client::on_connect, shared_from_this()));
+        beast::get_lowest_layer(ws_).async_connect(results,
+                                                   beast::bind_front_handler(&client::on_connect, shared_from_this()));
     }
 
-    void on_connect(beast::error_code ec,
-                    tcp::resolver::results_type::endpoint_type)
+    void on_connect(beast::error_code ec, tcp::resolver::results_type::endpoint_type)
     {
         if (ec)
             return client_handler_->on_error("on_connect", ec);
 
         beast::get_lowest_layer(ws_).expires_never();
 
-        ws_.set_option(beast::websocket::stream_base::timeout::suggested(
-          beast::role_type::client));
+        ws_.set_option(beast::websocket::stream_base::timeout::suggested(beast::role_type::client));
 
         ws_.set_option(beast::websocket::stream_base::decorator(
-          [](beast::websocket::request_type& req) {
-              req.set(http::field::user_agent, std::string("TEST_CLIENT"));
-          }));
+          [](beast::websocket::request_type& req) { req.set(http::field::user_agent, std::string("TEST_CLIENT")); }));
 
         ws_.binary(true);
 
-        ws_.async_handshake(
-          host_,
-          "/",
-          beast::bind_front_handler(&client::on_handshake, shared_from_this()));
+        ws_.async_handshake(host_, "/", beast::bind_front_handler(&client::on_handshake, shared_from_this()));
     }
 
     void on_handshake(beast::error_code ec)
@@ -121,9 +104,7 @@ class client : public std::enable_shared_from_this<client>
 
         client_handler_->on_open();
 
-        ws_.async_read(
-          fbuffer_,
-          beast::bind_front_handler(&client::on_read, shared_from_this()));
+        ws_.async_read(fbuffer_, beast::bind_front_handler(&client::on_read, shared_from_this()));
     }
 
     void on_read(beast::error_code ec, std::size_t read_bytes)
@@ -133,16 +114,13 @@ class client : public std::enable_shared_from_this<client>
 
         {
             std::vector<uint8_t> buf(read_bytes);
-            boost::asio::buffer_copy(
-              boost::asio::buffer(buf.data(), read_bytes), fbuffer_.data());
+            boost::asio::buffer_copy(boost::asio::buffer(buf.data(), read_bytes), fbuffer_.data());
             client_handler_->on_message(std::move(buf));
         }
 
         fbuffer_.consume(read_bytes);
 
-        ws_.async_read(
-          fbuffer_,
-          beast::bind_front_handler(&client::on_read, shared_from_this()));
+        ws_.async_read(fbuffer_, beast::bind_front_handler(&client::on_read, shared_from_this()));
     }
 
     void on_send(std::vector<uint8_t>&& data)
@@ -154,9 +132,8 @@ class client : public std::enable_shared_from_this<client>
 
         writing_ = true;
 
-        ws_.async_write(
-          net::buffer(wbuffer_.front()),
-          beast::bind_front_handler(&client::on_write, shared_from_this()));
+        ws_.async_write(net::buffer(wbuffer_.front()),
+                        beast::bind_front_handler(&client::on_write, shared_from_this()));
     }
 
     void on_write(beast::error_code ec, std::size_t written_bytes)
@@ -171,9 +148,8 @@ class client : public std::enable_shared_from_this<client>
             return;
         }
 
-        ws_.async_write(
-          net::buffer(wbuffer_.front()),
-          beast::bind_front_handler(&client::on_write, shared_from_this()));
+        ws_.async_write(net::buffer(wbuffer_.front()),
+                        beast::bind_front_handler(&client::on_write, shared_from_this()));
     }
 
     void on_close(beast::error_code ec)
@@ -203,15 +179,9 @@ class client : public std::enable_shared_from_this<client>
 class test_server_handler : public network::socket_handler
 {
   public:
-    std::function<void(uint32_t, std::weak_ptr<network::socket_base>)>
-      on_open_fn;
-    void set_on_open(
-      std::function<void(uint32_t, std::weak_ptr<network::socket_base>)> fn)
-    {
-        on_open_fn = fn;
-    }
-    void on_open(uint32_t id,
-                 std::weak_ptr<network::socket_base> socket) override
+    std::function<void(uint32_t, std::weak_ptr<network::socket_base>)> on_open_fn;
+    void set_on_open(std::function<void(uint32_t, std::weak_ptr<network::socket_base>)> fn) { on_open_fn = fn; }
+    void on_open(uint32_t id, std::weak_ptr<network::socket_base> socket) override
     {
         if (on_open_fn)
             on_open_fn(id, socket);
@@ -226,27 +196,16 @@ class test_server_handler : public network::socket_handler
     }
 
     std::function<void(uint32_t, std::vector<uint8_t>&&)> on_message_fn;
-    void set_on_message(
-      std::function<void(uint32_t, std::vector<uint8_t>&&)> fn)
-    {
-        on_message_fn = fn;
-    }
+    void set_on_message(std::function<void(uint32_t, std::vector<uint8_t>&&)> fn) { on_message_fn = fn; }
     void on_message(uint32_t id, std::vector<uint8_t>&& data) override
     {
         if (on_message_fn)
             on_message_fn(id, std::move(data));
     }
 
-    std::function<void(uint32_t, std::string_view, beast::error_code)>
-      on_error_fn;
-    void set_on_error(
-      std::function<void(uint32_t, std::string_view, beast::error_code)> fn)
-    {
-        on_error_fn = fn;
-    }
-    void on_error(uint32_t id,
-                  std::string_view what,
-                  beast::error_code ec) override
+    std::function<void(uint32_t, std::string_view, beast::error_code)> on_error_fn;
+    void set_on_error(std::function<void(uint32_t, std::string_view, beast::error_code)> fn) { on_error_fn = fn; }
+    void on_error(uint32_t id, std::string_view what, beast::error_code ec) override
     {
         if (on_error_fn)
             on_error_fn(id, what, ec);
@@ -272,10 +231,7 @@ class test_client_handler : public network::test::client_handler
     }
 
     std::function<void(std::vector<uint8_t>&&)> on_message_fn;
-    void set_on_message(std::function<void(std::vector<uint8_t>&&)> fn)
-    {
-        on_message_fn = fn;
-    }
+    void set_on_message(std::function<void(std::vector<uint8_t>&&)> fn) { on_message_fn = fn; }
     void on_message(std::vector<uint8_t>&& data) override
     {
         if (on_message_fn)
@@ -283,11 +239,7 @@ class test_client_handler : public network::test::client_handler
     }
 
     std::function<void(std::string_view, beast::error_code)> on_error_fn;
-    void set_on_error(
-      std::function<void(std::string_view, beast::error_code)> fn)
-    {
-        on_error_fn = fn;
-    }
+    void set_on_error(std::function<void(std::string_view, beast::error_code)> fn) { on_error_fn = fn; }
     void on_error(std::string_view what, beast::error_code ec) override
     {
         if (on_error_fn)
@@ -323,12 +275,9 @@ class network_test : public ::testing::Test
     {
         server_handler = std::make_shared<test_server_handler>();
         server = std::make_shared<network::socket_listener>(
-          ioc,
-          tcp::endpoint{ net::ip::make_address("127.0.0.1"), 8001 },
-          server_handler);
+          ioc, tcp::endpoint{ net::ip::make_address("127.0.0.1"), 8001 }, server_handler);
         client_handler = std::make_shared<test_client_handler>();
-        client = std::make_shared<network::test::client>(
-          ioc, "127.0.0.1", "8001", client_handler);
+        client = std::make_shared<network::test::client>(ioc, "127.0.0.1", "8001", client_handler);
     }
 };
 
@@ -347,8 +296,7 @@ dispatch_test_task(net::io_context& ioc, std::function<void()> fn)
 }
 
 bool
-wait_for(network_test* context,
-         std::chrono::duration<uint64_t> timeout = std::chrono::seconds(5))
+wait_for(network_test* context, std::chrono::duration<uint64_t> timeout = std::chrono::seconds(5))
 {
     auto start = std::chrono::steady_clock::now();
     while (!context->done.load(std::memory_order_acquire)) {
@@ -367,16 +315,15 @@ TEST_F(network_test, network_connection)
         server->open();
         client->open();
 
-        client_handler->set_on_error(
-          [this](std::string_view what, beast::error_code ec) {
-              static const auto start = std::chrono::steady_clock::now();
-              static const auto timeout = std::chrono::seconds(2);
-              if (std::chrono::steady_clock::now() >= start + timeout) {
-                  spdlog::error("{}: {}", what, ec.message());
-              } else {
-                  client->open();
-              }
-          });
+        client_handler->set_on_error([this](std::string_view what, beast::error_code ec) {
+            static const auto start = std::chrono::steady_clock::now();
+            static const auto timeout = std::chrono::seconds(2);
+            if (std::chrono::steady_clock::now() >= start + timeout) {
+                spdlog::error("{}: {}", what, ec.message());
+            } else {
+                client->open();
+            }
+        });
         client_handler->set_on_open([this]() { finish(true); });
     });
 
@@ -389,26 +336,24 @@ TEST_F(network_test, network_client_receive)
         server->open();
         client->open();
 
-        client_handler->set_on_error(
-          [this](std::string_view what, beast::error_code ec) {
-              static const auto start = std::chrono::steady_clock::now();
-              static const auto timeout = std::chrono::seconds(2);
-              if (std::chrono::steady_clock::now() >= start + timeout) {
-                  spdlog::error("{}: {}", what, ec.message());
-              } else {
-                  client->open();
-              }
-          });
+        client_handler->set_on_error([this](std::string_view what, beast::error_code ec) {
+            static const auto start = std::chrono::steady_clock::now();
+            static const auto timeout = std::chrono::seconds(2);
+            if (std::chrono::steady_clock::now() >= start + timeout) {
+                spdlog::error("{}: {}", what, ec.message());
+            } else {
+                client->open();
+            }
+        });
 
-        server_handler->set_on_open(
-          [this](uint32_t, std::weak_ptr<network::socket_base> socket) {
-              if (auto ptr = socket.lock()) {
-                  ptr->send({ 0, 0, 0, 0 });
-              } else {
-                  spdlog::info("could not acquire socket");
-                  finish(false);
-              }
-          });
+        server_handler->set_on_open([this](uint32_t, std::weak_ptr<network::socket_base> socket) {
+            if (auto ptr = socket.lock()) {
+                ptr->send({ 0, 0, 0, 0 });
+            } else {
+                spdlog::info("could not acquire socket");
+                finish(false);
+            }
+        });
         client_handler->set_on_message([this](std::vector<uint8_t>&& packet) {
             if (packet != std::vector<uint8_t>{ 0, 0, 0, 0 }) {
                 spdlog::info("got invalid packet");
@@ -428,26 +373,24 @@ TEST_F(network_test, network_server_receive)
         server->open();
         client->open();
 
-        client_handler->set_on_error(
-          [this](std::string_view what, beast::error_code ec) {
-              static const auto start = std::chrono::steady_clock::now();
-              static const auto timeout = std::chrono::seconds(2);
-              if (std::chrono::steady_clock::now() >= start + timeout) {
-                  spdlog::error("{}: {}", what, ec.message());
-              } else {
-                  client->open();
-              }
-          });
+        client_handler->set_on_error([this](std::string_view what, beast::error_code ec) {
+            static const auto start = std::chrono::steady_clock::now();
+            static const auto timeout = std::chrono::seconds(2);
+            if (std::chrono::steady_clock::now() >= start + timeout) {
+                spdlog::error("{}: {}", what, ec.message());
+            } else {
+                client->open();
+            }
+        });
 
-        server_handler->set_on_message(
-          [this](uint32_t, std::vector<uint8_t>&& data) {
-              if (data != std::vector<uint8_t>{ 0, 0, 0, 0 }) {
-                  spdlog::info("got invalid packet");
-                  finish(false);
-              } else {
-                  finish(true);
-              }
-          });
+        server_handler->set_on_message([this](uint32_t, std::vector<uint8_t>&& data) {
+            if (data != std::vector<uint8_t>{ 0, 0, 0, 0 }) {
+                spdlog::info("got invalid packet");
+                finish(false);
+            } else {
+                finish(true);
+            }
+        });
         client_handler->set_on_open([this]() { client->send({ 0, 0, 0, 0 }); });
     });
 

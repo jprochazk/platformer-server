@@ -25,18 +25,15 @@ time::time_point
 time::now()
 {
     return std::chrono::time_point<time::clock, time::duration>(
-      std::chrono::duration_cast<time::duration>(
-        time::clock::now().time_since_epoch()));
+      std::chrono::duration_cast<time::duration>(time::clock::now().time_since_epoch()));
 }
 
 std::time_t
 time::to_time_t(const time_point& t)
 {
     return std::chrono::system_clock::to_time_t(
-      std::chrono::time_point<std::chrono::system_clock,
-                              std::chrono::system_clock::duration>(
-        std::chrono::duration_cast<std::chrono::system_clock::duration>(
-          t.time_since_epoch())));
+      std::chrono::time_point<std::chrono::system_clock, std::chrono::system_clock::duration>(
+        std::chrono::duration_cast<std::chrono::system_clock::duration>(t.time_since_epoch())));
 }
 
 std::string

@@ -78,9 +78,7 @@ TEST(world, get_system_wrong_type)
         FAIL();
     } catch (std::exception e) {
         std::string actual{ e.what() };
-        std::string expected{
-            "System \"test\" is not of type \"class test_system2\""
-        };
+        std::string expected{ "System \"test\" is not of type \"class test_system2\"" };
         EXPECT_EQ(actual, expected);
     }
 }

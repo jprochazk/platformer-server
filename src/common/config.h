@@ -35,8 +35,7 @@ class config : private boost::noncopyable
         if (it) {
             return it.value();
         } else {
-            throw std::runtime_error(fmt::format(
-              "Config file \"{}\" has no field \"{}\"", instance().path_, key));
+            throw std::runtime_error(fmt::format("Config file \"{}\" has no field \"{}\"", instance().path_, key));
         }
     }
 

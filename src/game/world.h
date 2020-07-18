@@ -47,11 +47,9 @@ class world
 {
   public:
     world();
-    world(std::optional<database::settings> settings = {},
-          std::optional<json> map_data = {});
+    world(std::optional<database::settings> settings = {}, std::optional<json> map_data = {});
 
-    void add_system(const std::string& name,
-                    std::shared_ptr<system_base> system);
+    void add_system(const std::string& name, std::shared_ptr<system_base> system);
 
     template<typename System>
     std::shared_ptr<System> get_system(const std::string& name);

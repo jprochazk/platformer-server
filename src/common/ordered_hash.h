@@ -65,8 +65,7 @@
  * If exceptions are enabled, throw the exception passed in parameter, otherwise
  * call std::terminate.
  */
-#if (defined(__cpp_exceptions) || defined(__EXCEPTIONS) ||                     \
-     (defined(_MSC_VER) && defined(_CPPUNWIND))) &&                            \
+#if (defined(__cpp_exceptions) || defined(__EXCEPTIONS) || (defined(_MSC_VER) && defined(_CPPUNWIND))) &&              \
   !defined(TSL_NO_EXCEPTIONS)
 #define TSL_OH_THROW_OR_TERMINATE(ex, msg) throw ex(msg)
 #else
@@ -75,10 +74,10 @@
 #define TSL_OH_THROW_OR_TERMINATE(ex, msg) std::terminate()
 #else
 #include <iostream>
-#define TSL_OH_THROW_OR_TERMINATE(ex, msg)                                     \
-    do {                                                                       \
-        std::cerr << msg << std::endl;                                         \
-        std::terminate();                                                      \
+#define TSL_OH_THROW_OR_TERMINATE(ex, msg)                                                                             \
+    do {                                                                                                               \
+        std::cerr << msg << std::endl;                                                                                 \
+        std::terminate();                                                                                              \
     } while (0)
 #endif
 #endif
@@ -98,9 +97,7 @@ struct has_is_transparent : std::false_type
 {};
 
 template<typename T>
-struct has_is_transparent<T,
-                          typename make_void<typename T::is_transparent>::type>
-  : std::true_type
+struct has_is_transparent<T, typename make_void<typename T::is_transparent>::type> : std::true_type
 {};
 
 template<typename T, typename = void>
@@ -109,10 +106,8 @@ struct is_vector : std::false_type
 
 template<typename T>
 struct is_vector<T,
-                 typename std::enable_if<std::is_same<
-                   T,
-                   std::vector<typename T::value_type,
-                               typename T::allocator_type>>::value>::type>
+                 typename std::enable_if<
+                   std::is_same<T, std::vector<typename T::value_type, typename T::allocator_type>>::value>::type>
   : std::true_type
 {};
 
@@ -133,9 +128,8 @@ numeric_cast(U value, const char* error_message = "numeric_cast() failed.")
         TSL_OH_THROW_OR_TERMINATE(std::runtime_error, error_message);
     }
 
-    const bool is_same_signedness =
-      (std::is_unsigned<T>::value && std::is_unsigned<U>::value) ||
-      (std::is_signed<T>::value && std::is_signed<U>::value);
+    const bool is_same_signedness = (std::is_unsigned<T>::value && std::is_unsigned<U>::value) ||
+                                    (std::is_signed<T>::value && std::is_signed<U>::value);
     if (!is_same_signedness && (ret < T{}) != (value < U{})) {
         TSL_OH_THROW_OR_TERMINATE(std::runtime_error, error_message);
     }
@@ -149,8 +143,7 @@ numeric_cast(U value, const char* error_message = "numeric_cast() failed.")
  * must be the same size on both platforms.
  */
 using slz_size_type = std::uint64_t;
-static_assert(std::numeric_limits<slz_size_type>::max() >=
-                std::numeric_limits<std::size_t>::max(),
+static_assert(std::numeric_limits<slz_size_type>::max() >= std::numeric_limits<std::size_t>::max(),
               "slz_size_type must be >= std::size_t");
 
 template<class T, class Deserializer>
@@ -178,20 +171,17 @@ deserialize_value(Deserializer& deserializer)
 template<class IndexType>
 class bucket_entry
 {
-    static_assert(std::is_unsigned<IndexType>::value,
-                  "IndexType must be an unsigned value.");
-    static_assert(std::numeric_limits<IndexType>::max() <=
-                    std::numeric_limits<std::size_t>::max(),
+    static_assert(std::is_unsigned<IndexType>::value, "IndexType must be an unsigned value.");
+    static_assert(std::numeric_limits<IndexType>::max() <= std::numeric_limits<std::size_t>::max(),
                   "std::numeric_limits<IndexType>::max() must be <= "
                   "std::numeric_limits<std::size_t>::max().");
 
   public:
     using index_type = IndexType;
-    using truncated_hash_type = typename std::conditional<
-      std::numeric_limits<IndexType>::max() <=
-        std::numeric_limits<std::uint_least32_t>::max(),
-      std::uint_least32_t,
-      std::size_t>::type;
+    using truncated_hash_type = typename std::conditional<std::numeric_limits<IndexType>::max() <=
+                                                            std::numeric_limits<std::uint_least32_t>::max(),
+                                                          std::uint_least32_t,
+                                                          std::size_t>::type;
 
     bucket_entry() noexcept
       : m_index(EMPTY_MARKER_INDEX)
@@ -248,35 +238,25 @@ class bucket_entry
     template<class Deserializer>
     static bucket_entry deserialize(Deserializer& deserializer)
     {
-        const slz_size_type index =
-          deserialize_value<slz_size_type>(deserializer);
-        const slz_size_type hash =
-          deserialize_value<slz_size_type>(deserializer);
+        const slz_size_type index = deserialize_value<slz_size_type>(deserializer);
+        const slz_size_type hash = deserialize_value<slz_size_type>(deserializer);
 
         bucket_entry bentry;
-        bentry.m_index =
-          numeric_cast<index_type>(index, "Deserialized index is too big.");
-        bentry.m_hash = numeric_cast<truncated_hash_type>(
-          hash, "Deserialized hash is too big.");
+        bentry.m_index = numeric_cast<index_type>(index, "Deserialized index is too big.");
+        bentry.m_hash = numeric_cast<truncated_hash_type>(hash, "Deserialized hash is too big.");
 
         return bentry;
     }
 
-    static truncated_hash_type truncate_hash(std::size_t hash) noexcept
-    {
-        return truncated_hash_type(hash);
-    }
+    static truncated_hash_type truncate_hash(std::size_t hash) noexcept { return truncated_hash_type(hash); }
 
     static std::size_t max_size() noexcept
     {
-        return static_cast<std::size_t>(
-                 std::numeric_limits<index_type>::max()) -
-               NB_RESERVED_INDEXES;
+        return static_cast<std::size_t>(std::numeric_limits<index_type>::max()) - NB_RESERVED_INDEXES;
     }
 
   private:
-    static const index_type EMPTY_MARKER_INDEX =
-      std::numeric_limits<index_type>::max();
+    static const index_type EMPTY_MARKER_INDEX = std::numeric_limits<index_type>::max();
     static const std::size_t NB_RESERVED_INDEXES = 1;
 
     index_type m_index;
@@ -328,26 +308,22 @@ class ordered_hash
 {
   private:
     template<typename U>
-    using has_mapped_type =
-      typename std::integral_constant<bool, !std::is_same<U, void>::value>;
+    using has_mapped_type = typename std::integral_constant<bool, !std::is_same<U, void>::value>;
 
-    static_assert(
-      std::is_same<typename ValueTypeContainer::value_type, ValueType>::value,
-      "ValueTypeContainer::value_type != ValueType. "
-      "Check that the ValueTypeContainer has 'Key' as type for a set or "
-      "'std::pair<Key, T>' as type for a map.");
+    static_assert(std::is_same<typename ValueTypeContainer::value_type, ValueType>::value,
+                  "ValueTypeContainer::value_type != ValueType. "
+                  "Check that the ValueTypeContainer has 'Key' as type for a set or "
+                  "'std::pair<Key, T>' as type for a map.");
 
-    static_assert(std::is_same<typename ValueTypeContainer::allocator_type,
-                               Allocator>::value,
+    static_assert(std::is_same<typename ValueTypeContainer::allocator_type, Allocator>::value,
                   "ValueTypeContainer::allocator_type != Allocator. "
                   "Check that the allocator for ValueTypeContainer is the same "
                   "as Allocator.");
 
-    static_assert(
-      std::is_same<typename Allocator::value_type, ValueType>::value,
-      "Allocator::value_type != ValueType. "
-      "Check that the allocator has 'Key' as type for a set or "
-      "'std::pair<Key, T>' as type for a map.");
+    static_assert(std::is_same<typename Allocator::value_type, ValueType>::value,
+                  "Allocator::value_type != ValueType. "
+                  "Check that the allocator has 'Key' as type for a set or "
+                  "'std::pair<Key, T>' as type for a map.");
 
   public:
     template<bool IsConst>
@@ -378,10 +354,9 @@ class ordered_hash
         friend class ordered_hash;
 
       private:
-        using iterator = typename std::conditional<
-          IsConst,
-          typename values_container_type::const_iterator,
-          typename values_container_type::iterator>::type;
+        using iterator = typename std::conditional<IsConst,
+                                                   typename values_container_type::const_iterator,
+                                                   typename values_container_type::iterator>::type;
 
         ordered_iterator(iterator it) noexcept
           : m_iterator(it)
@@ -397,8 +372,7 @@ class ordered_hash
         ordered_iterator() noexcept {}
 
         // Copy constructor from iterator to const_iterator.
-        template<bool TIsConst = IsConst,
-                 typename std::enable_if<TIsConst>::type* = nullptr>
+        template<bool TIsConst = IsConst, typename std::enable_if<TIsConst>::type* = nullptr>
         ordered_iterator(const ordered_iterator<!TIsConst>& other) noexcept
           : m_iterator(other.m_iterator)
         {}
@@ -408,22 +382,15 @@ class ordered_hash
         ordered_iterator& operator=(const ordered_iterator& other) = default;
         ordered_iterator& operator=(ordered_iterator&& other) = default;
 
-        const typename ordered_hash::key_type& key() const
-        {
-            return KeySelect()(*m_iterator);
-        }
+        const typename ordered_hash::key_type& key() const { return KeySelect()(*m_iterator); }
 
-        template<class U = ValueSelect,
-                 typename std::enable_if<has_mapped_type<U>::value &&
-                                         IsConst>::type* = nullptr>
+        template<class U = ValueSelect, typename std::enable_if<has_mapped_type<U>::value && IsConst>::type* = nullptr>
         const typename U::value_type& value() const
         {
             return U()(*m_iterator);
         }
 
-        template<class U = ValueSelect,
-                 typename std::enable_if<has_mapped_type<U>::value &&
-                                         !IsConst>::type* = nullptr>
+        template<class U = ValueSelect, typename std::enable_if<has_mapped_type<U>::value && !IsConst>::type* = nullptr>
         typename U::value_type& value()
         {
             return U()(*m_iterator);
@@ -482,50 +449,39 @@ class ordered_hash
             return tmp;
         }
 
-        friend bool operator==(const ordered_iterator& lhs,
-                               const ordered_iterator& rhs)
+        friend bool operator==(const ordered_iterator& lhs, const ordered_iterator& rhs)
         {
             return lhs.m_iterator == rhs.m_iterator;
         }
 
-        friend bool operator!=(const ordered_iterator& lhs,
-                               const ordered_iterator& rhs)
+        friend bool operator!=(const ordered_iterator& lhs, const ordered_iterator& rhs)
         {
             return lhs.m_iterator != rhs.m_iterator;
         }
 
-        friend bool operator<(const ordered_iterator& lhs,
-                              const ordered_iterator& rhs)
+        friend bool operator<(const ordered_iterator& lhs, const ordered_iterator& rhs)
         {
             return lhs.m_iterator < rhs.m_iterator;
         }
 
-        friend bool operator>(const ordered_iterator& lhs,
-                              const ordered_iterator& rhs)
+        friend bool operator>(const ordered_iterator& lhs, const ordered_iterator& rhs)
         {
             return lhs.m_iterator > rhs.m_iterator;
         }
 
-        friend bool operator<=(const ordered_iterator& lhs,
-                               const ordered_iterator& rhs)
+        friend bool operator<=(const ordered_iterator& lhs, const ordered_iterator& rhs)
         {
             return lhs.m_iterator <= rhs.m_iterator;
         }
 
-        friend bool operator>=(const ordered_iterator& lhs,
-                               const ordered_iterator& rhs)
+        friend bool operator>=(const ordered_iterator& lhs, const ordered_iterator& rhs)
         {
             return lhs.m_iterator >= rhs.m_iterator;
         }
 
-        friend ordered_iterator operator+(difference_type n,
-                                          const ordered_iterator& it)
-        {
-            return n + it.m_iterator;
-        }
+        friend ordered_iterator operator+(difference_type n, const ordered_iterator& it) { return n + it.m_iterator; }
 
-        friend difference_type operator-(const ordered_iterator& lhs,
-                                         const ordered_iterator& rhs)
+        friend difference_type operator-(const ordered_iterator& lhs, const ordered_iterator& rhs)
         {
             return lhs.m_iterator - rhs.m_iterator;
         }
@@ -537,11 +493,10 @@ class ordered_hash
   private:
     using bucket_entry = tsl::detail_ordered_hash::bucket_entry<IndexType>;
 
-    using buckets_container_allocator = typename std::allocator_traits<
-      allocator_type>::template rebind_alloc<bucket_entry>;
+    using buckets_container_allocator =
+      typename std::allocator_traits<allocator_type>::template rebind_alloc<bucket_entry>;
 
-    using buckets_container_type =
-      std::vector<bucket_entry, buckets_container_allocator>;
+    using buckets_container_type = std::vector<bucket_entry, buckets_container_allocator>;
 
     using truncated_hash_type = typename bucket_entry::truncated_hash_type;
     using index_type = typename bucket_entry::index_type;
@@ -561,8 +516,7 @@ class ordered_hash
       , m_grow_on_next_insert(false)
     {
         if (bucket_count > max_bucket_count()) {
-            TSL_OH_THROW_OR_TERMINATE(std::length_error,
-                                      "The map exceeds its maximum size.");
+            TSL_OH_THROW_OR_TERMINATE(std::length_error, "The map exceeds its maximum size.");
         }
 
         if (bucket_count > 0) {
@@ -579,8 +533,7 @@ class ordered_hash
       : Hash(other)
       , KeyEqual(other)
       , m_buckets_data(other.m_buckets_data)
-      , m_buckets(m_buckets_data.empty() ? static_empty_bucket_ptr()
-                                         : m_buckets_data.data())
+      , m_buckets(m_buckets_data.empty() ? static_empty_bucket_ptr() : m_buckets_data.data())
       , m_hash_mask(other.m_hash_mask)
       , m_values(other.m_values)
       , m_load_threshold(other.m_load_threshold)
@@ -589,15 +542,13 @@ class ordered_hash
     {}
 
     ordered_hash(ordered_hash&& other) noexcept(
-      std::is_nothrow_move_constructible<Hash>::value&&
-        std::is_nothrow_move_constructible<KeyEqual>::value&&
-          std::is_nothrow_move_constructible<buckets_container_type>::value&&
-            std::is_nothrow_move_constructible<values_container_type>::value)
+      std::is_nothrow_move_constructible<Hash>::value&& std::is_nothrow_move_constructible<KeyEqual>::value&&
+        std::is_nothrow_move_constructible<buckets_container_type>::value&&
+          std::is_nothrow_move_constructible<values_container_type>::value)
       : Hash(std::move(static_cast<Hash&>(other)))
       , KeyEqual(std::move(static_cast<KeyEqual&>(other)))
       , m_buckets_data(std::move(other.m_buckets_data))
-      , m_buckets(m_buckets_data.empty() ? static_empty_bucket_ptr()
-                                         : m_buckets_data.data())
+      , m_buckets(m_buckets_data.empty() ? static_empty_bucket_ptr() : m_buckets_data.data())
       , m_hash_mask(other.m_hash_mask)
       , m_values(std::move(other.m_values))
       , m_load_threshold(other.m_load_threshold)
@@ -619,8 +570,7 @@ class ordered_hash
             KeyEqual::operator=(other);
 
             m_buckets_data = other.m_buckets_data;
-            m_buckets = m_buckets_data.empty() ? static_empty_bucket_ptr()
-                                               : m_buckets_data.data();
+            m_buckets = m_buckets_data.empty() ? static_empty_bucket_ptr() : m_buckets_data.data();
 
             m_hash_mask = other.m_hash_mask;
             m_values = other.m_values;
@@ -649,43 +599,25 @@ class ordered_hash
 
     const_iterator begin() const noexcept { return cbegin(); }
 
-    const_iterator cbegin() const noexcept
-    {
-        return const_iterator(m_values.cbegin());
-    }
+    const_iterator cbegin() const noexcept { return const_iterator(m_values.cbegin()); }
 
     iterator end() noexcept { return iterator(m_values.end()); }
 
     const_iterator end() const noexcept { return cend(); }
 
-    const_iterator cend() const noexcept
-    {
-        return const_iterator(m_values.cend());
-    }
+    const_iterator cend() const noexcept { return const_iterator(m_values.cend()); }
 
-    reverse_iterator rbegin() noexcept
-    {
-        return reverse_iterator(m_values.end());
-    }
+    reverse_iterator rbegin() noexcept { return reverse_iterator(m_values.end()); }
 
     const_reverse_iterator rbegin() const noexcept { return rcbegin(); }
 
-    const_reverse_iterator rcbegin() const noexcept
-    {
-        return const_reverse_iterator(m_values.cend());
-    }
+    const_reverse_iterator rcbegin() const noexcept { return const_reverse_iterator(m_values.cend()); }
 
-    reverse_iterator rend() noexcept
-    {
-        return reverse_iterator(m_values.begin());
-    }
+    reverse_iterator rend() noexcept { return reverse_iterator(m_values.begin()); }
 
     const_reverse_iterator rend() const noexcept { return rcend(); }
 
-    const_reverse_iterator rcend() const noexcept
-    {
-        return const_reverse_iterator(m_values.cbegin());
-    }
+    const_reverse_iterator rcend() const noexcept { return const_reverse_iterator(m_values.cbegin()); }
 
     /*
      * Capacity
@@ -694,10 +626,7 @@ class ordered_hash
 
     size_type size() const noexcept { return m_values.size(); }
 
-    size_type max_size() const noexcept
-    {
-        return std::min(bucket_entry::max_size(), m_values.max_size());
-    }
+    size_type max_size() const noexcept { return std::min(bucket_entry::max_size(), m_values.max_size()); }
 
     /*
      * Modifiers
@@ -721,8 +650,7 @@ class ordered_hash
     template<typename P>
     iterator insert_hint(const_iterator hint, P&& value)
     {
-        if (hint != cend() &&
-            compare_keys(KeySelect()(*hint), KeySelect()(value))) {
+        if (hint != cend() && compare_keys(KeySelect()(*hint), KeySelect()(value))) {
             return mutable_iterator(hint);
         }
 
@@ -733,14 +661,12 @@ class ordered_hash
     void insert(InputIt first, InputIt last)
     {
         if (std::is_base_of<std::forward_iterator_tag,
-                            typename std::iterator_traits<
-                              InputIt>::iterator_category>::value) {
+                            typename std::iterator_traits<InputIt>::iterator_category>::value) {
             const auto nb_elements_insert = std::distance(first, last);
             const size_type nb_free_buckets = m_load_threshold - size();
             tsl_oh_assert(m_load_threshold >= size());
 
-            if (nb_elements_insert > 0 &&
-                nb_free_buckets < size_type(nb_elements_insert)) {
+            if (nb_elements_insert > 0 && nb_free_buckets < size_type(nb_elements_insert)) {
                 reserve(size() + size_type(nb_elements_insert));
             }
         }
@@ -771,8 +697,7 @@ class ordered_hash
             return it;
         }
 
-        return insert_or_assign(std::forward<K>(key), std::forward<M>(obj))
-          .first;
+        return insert_or_assign(std::forward<K>(key), std::forward<M>(obj)).first;
     }
 
     template<class... Args>
@@ -790,11 +715,10 @@ class ordered_hash
     template<class K, class... Args>
     std::pair<iterator, bool> try_emplace(K&& key, Args&&... value_args)
     {
-        return insert_impl(
-          key,
-          std::piecewise_construct,
-          std::forward_as_tuple(std::forward<K>(key)),
-          std::forward_as_tuple(std::forward<Args>(value_args)...));
+        return insert_impl(key,
+                           std::piecewise_construct,
+                           std::forward_as_tuple(std::forward<K>(key)),
+                           std::forward_as_tuple(std::forward<Args>(value_args)...));
     }
 
     template<class K, class... Args>
@@ -804,8 +728,7 @@ class ordered_hash
             return mutable_iterator(hint);
         }
 
-        return try_emplace(std::forward<K>(key), std::forward<Args>(args)...)
-          .first;
+        return try_emplace(std::forward<K>(key), std::forward<Args>(args)...).first;
     }
 
     /**
@@ -846,8 +769,7 @@ class ordered_hash
 
         // Delete all values
 #ifdef TSL_OH_NO_CONTAINER_ERASE_CONST_ITERATOR
-        auto next_it = m_values.erase(mutable_iterator(first).m_iterator,
-                                      mutable_iterator(last).m_iterator);
+        auto next_it = m_values.erase(mutable_iterator(first).m_iterator, mutable_iterator(last).m_iterator);
 #else
         auto next_it = m_values.erase(first.m_iterator, last.m_iterator);
 #endif
@@ -863,15 +785,13 @@ class ordered_hash
         while (ibucket < m_buckets_data.size()) {
             if (m_buckets[ibucket].empty()) {
                 ibucket++;
-            } else if (m_buckets[ibucket].index() >= start_index &&
-                       m_buckets[ibucket].index() < end_index) {
+            } else if (m_buckets[ibucket].index() >= start_index && m_buckets[ibucket].index() < end_index) {
                 m_buckets[ibucket].clear();
                 backward_shift(ibucket);
                 // Don't increment ibucket, backward_shift may have replaced
                 // current bucket.
             } else if (m_buckets[ibucket].index() >= end_index) {
-                m_buckets[ibucket].set_index(
-                  index_type(m_buckets[ibucket].index() - nb_values));
+                m_buckets[ibucket].set_index(index_type(m_buckets[ibucket].index() - nb_values));
                 ibucket++;
             } else {
                 ibucket++;
@@ -911,53 +831,36 @@ class ordered_hash
     /*
      * Lookup
      */
-    template<
-      class K,
-      class U = ValueSelect,
-      typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
+    template<class K, class U = ValueSelect, typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
     typename U::value_type& at(const K& key)
     {
         return at(key, hash_key(key));
     }
 
-    template<
-      class K,
-      class U = ValueSelect,
-      typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
+    template<class K, class U = ValueSelect, typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
     typename U::value_type& at(const K& key, std::size_t hash)
     {
-        return const_cast<typename U::value_type&>(
-          static_cast<const ordered_hash*>(this)->at(key, hash));
+        return const_cast<typename U::value_type&>(static_cast<const ordered_hash*>(this)->at(key, hash));
     }
 
-    template<
-      class K,
-      class U = ValueSelect,
-      typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
+    template<class K, class U = ValueSelect, typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
     const typename U::value_type& at(const K& key) const
     {
         return at(key, hash_key(key));
     }
 
-    template<
-      class K,
-      class U = ValueSelect,
-      typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
+    template<class K, class U = ValueSelect, typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
     const typename U::value_type& at(const K& key, std::size_t hash) const
     {
         auto it = find(key, hash);
         if (it != end()) {
             return it.value();
         } else {
-            TSL_OH_THROW_OR_TERMINATE(std::out_of_range,
-                                      "Couldn't find the key.");
+            TSL_OH_THROW_OR_TERMINATE(std::out_of_range, "Couldn't find the key.");
         }
     }
 
-    template<
-      class K,
-      class U = ValueSelect,
-      typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
+    template<class K, class U = ValueSelect, typename std::enable_if<has_mapped_type<U>::value>::type* = nullptr>
     typename U::value_type& operator[](K&& key)
     {
         return try_emplace(std::forward<K>(key)).first.value();
@@ -989,9 +892,7 @@ class ordered_hash
     iterator find(const K& key, std::size_t hash)
     {
         auto it_bucket = find_key(key, hash);
-        return (it_bucket != m_buckets_data.end())
-                 ? iterator(m_values.begin() + it_bucket->index())
-                 : end();
+        return (it_bucket != m_buckets_data.end()) ? iterator(m_values.begin() + it_bucket->index()) : end();
     }
 
     template<class K>
@@ -1004,9 +905,7 @@ class ordered_hash
     const_iterator find(const K& key, std::size_t hash) const
     {
         auto it_bucket = find_key(key, hash);
-        return (it_bucket != m_buckets_data.cend())
-                 ? const_iterator(m_values.begin() + it_bucket->index())
-                 : end();
+        return (it_bucket != m_buckets_data.cend()) ? const_iterator(m_values.begin() + it_bucket->index()) : end();
     }
 
     template<class K>
@@ -1029,9 +928,7 @@ class ordered_hash
     }
 
     template<class K>
-    std::pair<const_iterator, const_iterator> equal_range(
-      const K& key,
-      std::size_t hash) const
+    std::pair<const_iterator, const_iterator> equal_range(const K& key, std::size_t hash) const
     {
         const_iterator it = find(key, hash);
         return std::make_pair(it, (it == cend()) ? it : std::next(it));
@@ -1060,8 +957,7 @@ class ordered_hash
 
     void max_load_factor(float ml)
     {
-        m_max_load_factor = clamp(
-          ml, float(MAX_LOAD_FACTOR__MINIMUM), float(MAX_LOAD_FACTOR__MAXIMUM));
+        m_max_load_factor = clamp(ml, float(MAX_LOAD_FACTOR__MINIMUM), float(MAX_LOAD_FACTOR__MAXIMUM));
 
         m_max_load_factor = ml;
         m_load_threshold = size_type(float(bucket_count()) * m_max_load_factor);
@@ -1069,8 +965,7 @@ class ordered_hash
 
     void rehash(size_type count)
     {
-        count = std::max(
-          count, size_type(std::ceil(float(size()) / max_load_factor())));
+        count = std::max(count, size_type(std::ceil(float(size()) / max_load_factor())));
         rehash_impl(count);
     }
 
@@ -1092,10 +987,7 @@ class ordered_hash
     /*
      * Other
      */
-    iterator mutable_iterator(const_iterator pos)
-    {
-        return iterator(m_values.begin() + iterator_to_index(pos));
-    }
+    iterator mutable_iterator(const_iterator pos) { return iterator(m_values.begin() + iterator_to_index(pos)); }
 
     iterator nth(size_type index)
     {
@@ -1121,20 +1013,15 @@ class ordered_hash
         return m_values.back();
     }
 
-    const values_container_type& values_container() const noexcept
-    {
-        return m_values;
-    }
+    const values_container_type& values_container() const noexcept { return m_values; }
 
-    template<class U = values_container_type,
-             typename std::enable_if<is_vector<U>::value>::type* = nullptr>
+    template<class U = values_container_type, typename std::enable_if<is_vector<U>::value>::type* = nullptr>
     const typename values_container_type::value_type* data() const noexcept
     {
         return m_values.data();
     }
 
-    template<class U = values_container_type,
-             typename std::enable_if<is_vector<U>::value>::type* = nullptr>
+    template<class U = values_container_type, typename std::enable_if<is_vector<U>::value>::type* = nullptr>
     size_type capacity() const noexcept
     {
         return m_values.capacity();
@@ -1145,28 +1032,23 @@ class ordered_hash
     template<typename P>
     std::pair<iterator, bool> insert_at_position(const_iterator pos, P&& value)
     {
-        return insert_at_position_impl(
-          pos.m_iterator, KeySelect()(value), std::forward<P>(value));
+        return insert_at_position_impl(pos.m_iterator, KeySelect()(value), std::forward<P>(value));
     }
 
     template<class... Args>
-    std::pair<iterator, bool> emplace_at_position(const_iterator pos,
-                                                  Args&&... args)
+    std::pair<iterator, bool> emplace_at_position(const_iterator pos, Args&&... args)
     {
         return insert_at_position(pos, value_type(std::forward<Args>(args)...));
     }
 
     template<class K, class... Args>
-    std::pair<iterator, bool> try_emplace_at_position(const_iterator pos,
-                                                      K&& key,
-                                                      Args&&... value_args)
+    std::pair<iterator, bool> try_emplace_at_position(const_iterator pos, K&& key, Args&&... value_args)
     {
-        return insert_at_position_impl(
-          pos.m_iterator,
-          key,
-          std::piecewise_construct,
-          std::forward_as_tuple(std::forward<K>(key)),
-          std::forward_as_tuple(std::forward<Args>(value_args)...));
+        return insert_at_position_impl(pos.m_iterator,
+                                       key,
+                                       std::piecewise_construct,
+                                       std::forward_as_tuple(std::forward<K>(key)),
+                                       std::forward_as_tuple(std::forward<Args>(value_args)...));
     }
 
     void pop_back()
@@ -1179,10 +1061,7 @@ class ordered_hash
      * Here to avoid `template<class K> size_type unordered_erase(const K& key)`
      * being used when we use a iterator instead of a const_iterator.
      */
-    iterator unordered_erase(iterator pos)
-    {
-        return unordered_erase(const_iterator(pos));
-    }
+    iterator unordered_erase(iterator pos) { return unordered_erase(const_iterator(pos)); }
 
     iterator unordered_erase(const_iterator pos)
     {
@@ -1217,14 +1096,12 @@ class ordered_hash
          * just have to do a pop_back() in m_values.
          */
         if (!compare_keys(key, KeySelect()(back()))) {
-            auto it_bucket_last_elem =
-              find_key(KeySelect()(back()), hash_key(KeySelect()(back())));
+            auto it_bucket_last_elem = find_key(KeySelect()(back()), hash_key(KeySelect()(back())));
             tsl_oh_assert(it_bucket_last_elem != m_buckets_data.end());
             tsl_oh_assert(it_bucket_last_elem->index() == m_values.size() - 1);
 
             using std::swap;
-            swap(m_values[it_bucket_key->index()],
-                 m_values[it_bucket_last_elem->index()]);
+            swap(m_values[it_bucket_key->index()], m_values[it_bucket_last_elem->index()]);
             swap(it_bucket_key->index_ref(), it_bucket_last_elem->index_ref());
         }
 
@@ -1245,35 +1122,17 @@ class ordered_hash
         deserialize_impl(deserializer, hash_compatible);
     }
 
-    friend bool operator==(const ordered_hash& lhs, const ordered_hash& rhs)
-    {
-        return lhs.m_values == rhs.m_values;
-    }
+    friend bool operator==(const ordered_hash& lhs, const ordered_hash& rhs) { return lhs.m_values == rhs.m_values; }
 
-    friend bool operator!=(const ordered_hash& lhs, const ordered_hash& rhs)
-    {
-        return lhs.m_values != rhs.m_values;
-    }
+    friend bool operator!=(const ordered_hash& lhs, const ordered_hash& rhs) { return lhs.m_values != rhs.m_values; }
 
-    friend bool operator<(const ordered_hash& lhs, const ordered_hash& rhs)
-    {
-        return lhs.m_values < rhs.m_values;
-    }
+    friend bool operator<(const ordered_hash& lhs, const ordered_hash& rhs) { return lhs.m_values < rhs.m_values; }
 
-    friend bool operator<=(const ordered_hash& lhs, const ordered_hash& rhs)
-    {
-        return lhs.m_values <= rhs.m_values;
-    }
+    friend bool operator<=(const ordered_hash& lhs, const ordered_hash& rhs) { return lhs.m_values <= rhs.m_values; }
 
-    friend bool operator>(const ordered_hash& lhs, const ordered_hash& rhs)
-    {
-        return lhs.m_values > rhs.m_values;
-    }
+    friend bool operator>(const ordered_hash& lhs, const ordered_hash& rhs) { return lhs.m_values > rhs.m_values; }
 
-    friend bool operator>=(const ordered_hash& lhs, const ordered_hash& rhs)
-    {
-        return lhs.m_values >= rhs.m_values;
-    }
+    friend bool operator>=(const ordered_hash& lhs, const ordered_hash& rhs) { return lhs.m_values >= rhs.m_values; }
 
   private:
     template<class K>
@@ -1289,12 +1148,10 @@ class ordered_hash
     }
 
     template<class K>
-    typename buckets_container_type::iterator find_key(const K& key,
-                                                       std::size_t hash)
+    typename buckets_container_type::iterator find_key(const K& key, std::size_t hash)
     {
         auto it = static_cast<const ordered_hash*>(this)->find_key(key, hash);
-        return m_buckets_data.begin() +
-               std::distance(m_buckets_data.cbegin(), it);
+        return m_buckets_data.begin() + std::distance(m_buckets_data.cbegin(), it);
     }
 
     /**
@@ -1305,24 +1162,16 @@ class ordered_hash
      * bucket longer than the probe length for the value we are looking for.
      */
     template<class K>
-    typename buckets_container_type::const_iterator find_key(
-      const K& key,
-      std::size_t hash) const
+    typename buckets_container_type::const_iterator find_key(const K& key, std::size_t hash) const
     {
-        for (std::size_t ibucket = bucket_for_hash(hash),
-                         dist_from_ideal_bucket = 0;
-             ;
+        for (std::size_t ibucket = bucket_for_hash(hash), dist_from_ideal_bucket = 0;;
              ibucket = next_bucket(ibucket), dist_from_ideal_bucket++) {
             if (m_buckets[ibucket].empty()) {
                 return m_buckets_data.end();
-            } else if (m_buckets[ibucket].truncated_hash() ==
-                         bucket_entry::truncate_hash(hash) &&
-                       compare_keys(
-                         key,
-                         KeySelect()(m_values[m_buckets[ibucket].index()]))) {
+            } else if (m_buckets[ibucket].truncated_hash() == bucket_entry::truncate_hash(hash) &&
+                       compare_keys(key, KeySelect()(m_values[m_buckets[ibucket].index()]))) {
                 return m_buckets_data.begin() + ibucket;
-            } else if (dist_from_ideal_bucket >
-                       distance_from_ideal_bucket(ibucket)) {
+            } else if (dist_from_ideal_bucket > distance_from_ideal_bucket(ibucket)) {
                 return m_buckets_data.end();
             }
         }
@@ -1330,12 +1179,10 @@ class ordered_hash
 
     void rehash_impl(size_type bucket_count)
     {
-        tsl_oh_assert(bucket_count >=
-                      size_type(std::ceil(float(size()) / max_load_factor())));
+        tsl_oh_assert(bucket_count >= size_type(std::ceil(float(size()) / max_load_factor())));
 
         if (bucket_count > max_bucket_count()) {
-            TSL_OH_THROW_OR_TERMINATE(std::length_error,
-                                      "The map exceeds its maximum size.");
+            TSL_OH_THROW_OR_TERMINATE(std::length_error, "The map exceeds its maximum size.");
         }
 
         if (bucket_count > 0) {
@@ -1348,8 +1195,7 @@ class ordered_hash
 
         buckets_container_type old_buckets(bucket_count);
         m_buckets_data.swap(old_buckets);
-        m_buckets = m_buckets_data.empty() ? static_empty_bucket_ptr()
-                                           : m_buckets_data.data();
+        m_buckets = m_buckets_data.empty() ? static_empty_bucket_ptr() : m_buckets_data.data();
         // Everything should be noexcept from here.
 
         m_hash_mask = (bucket_count > 0) ? (bucket_count - 1) : 0;
@@ -1364,9 +1210,7 @@ class ordered_hash
             truncated_hash_type insert_hash = old_bucket.truncated_hash();
             index_type insert_index = old_bucket.index();
 
-            for (std::size_t ibucket = bucket_for_hash(insert_hash),
-                             dist_from_ideal_bucket = 0;
-                 ;
+            for (std::size_t ibucket = bucket_for_hash(insert_hash), dist_from_ideal_bucket = 0;;
                  ibucket = next_bucket(ibucket), dist_from_ideal_bucket++) {
                 if (m_buckets[ibucket].empty()) {
                     m_buckets[ibucket].set_index(insert_index);
@@ -1374,27 +1218,23 @@ class ordered_hash
                     break;
                 }
 
-                const std::size_t distance =
-                  distance_from_ideal_bucket(ibucket);
+                const std::size_t distance = distance_from_ideal_bucket(ibucket);
                 if (dist_from_ideal_bucket > distance) {
                     std::swap(insert_index, m_buckets[ibucket].index_ref());
-                    std::swap(insert_hash,
-                              m_buckets[ibucket].truncated_hash_ref());
+                    std::swap(insert_hash, m_buckets[ibucket].truncated_hash_ref());
                     dist_from_ideal_bucket = distance;
                 }
             }
         }
     }
 
-    template<class T = values_container_type,
-             typename std::enable_if<is_vector<T>::value>::type* = nullptr>
+    template<class T = values_container_type, typename std::enable_if<is_vector<T>::value>::type* = nullptr>
     void reserve_space_for_values(size_type count)
     {
         m_values.reserve(count);
     }
 
-    template<class T = values_container_type,
-             typename std::enable_if<!is_vector<T>::value>::type* = nullptr>
+    template<class T = values_container_type, typename std::enable_if<!is_vector<T>::value>::type* = nullptr>
     void reserve_space_for_values(size_type /*count*/)
     {}
 
@@ -1409,16 +1249,13 @@ class ordered_hash
 
         std::size_t previous_ibucket = empty_ibucket;
         for (std::size_t current_ibucket = next_bucket(previous_ibucket);
-             !m_buckets[current_ibucket].empty() &&
-             distance_from_ideal_bucket(current_ibucket) > 0;
-             previous_ibucket = current_ibucket,
-                         current_ibucket = next_bucket(current_ibucket)) {
+             !m_buckets[current_ibucket].empty() && distance_from_ideal_bucket(current_ibucket) > 0;
+             previous_ibucket = current_ibucket, current_ibucket = next_bucket(current_ibucket)) {
             std::swap(m_buckets[current_ibucket], m_buckets[previous_ibucket]);
         }
     }
 
-    void erase_value_from_bucket(
-      typename buckets_container_type::iterator it_bucket)
+    void erase_value_from_bucket(typename buckets_container_type::iterator it_bucket)
     {
         tsl_oh_assert(it_bucket != m_buckets_data.end() && !it_bucket->empty());
 
@@ -1435,8 +1272,7 @@ class ordered_hash
         // Mark the bucket as empty and do a backward shift of the values on the
         // right
         it_bucket->clear();
-        backward_shift(
-          std::size_t(std::distance(m_buckets_data.begin(), it_bucket)));
+        backward_shift(std::size_t(std::distance(m_buckets_data.begin(), it_bucket)));
     }
 
     /**
@@ -1449,15 +1285,12 @@ class ordered_hash
     {
         tsl_oh_assert(delta == 1 || delta == -1);
 
-        for (std::size_t ivalue = from_ivalue; ivalue < m_values.size();
-             ivalue++) {
+        for (std::size_t ivalue = from_ivalue; ivalue < m_values.size(); ivalue++) {
             // All the values in m_values have been shifted by delta. Find the
             // bucket corresponding to the value m_values[ivalue]
-            const index_type old_index =
-              static_cast<index_type>(ivalue - delta);
+            const index_type old_index = static_cast<index_type>(ivalue - delta);
 
-            std::size_t ibucket =
-              bucket_for_hash(hash_key(KeySelect()(m_values[ivalue])));
+            std::size_t ibucket = bucket_for_hash(hash_key(KeySelect()(m_values[ivalue])));
             while (m_buckets[ibucket].index() != old_index) {
                 ibucket = next_bucket(ibucket);
             }
@@ -1483,22 +1316,17 @@ class ordered_hash
      * Insert the element at the end.
      */
     template<class K, class... Args>
-    std::pair<iterator, bool> insert_impl(const K& key,
-                                          Args&&... value_type_args)
+    std::pair<iterator, bool> insert_impl(const K& key, Args&&... value_type_args)
     {
         const std::size_t hash = hash_key(key);
 
         std::size_t ibucket = bucket_for_hash(hash);
         std::size_t dist_from_ideal_bucket = 0;
 
-        while (!m_buckets[ibucket].empty() &&
-               dist_from_ideal_bucket <= distance_from_ideal_bucket(ibucket)) {
-            if (m_buckets[ibucket].truncated_hash() ==
-                  bucket_entry::truncate_hash(hash) &&
-                compare_keys(
-                  key, KeySelect()(m_values[m_buckets[ibucket].index()]))) {
-                return std::make_pair(begin() + m_buckets[ibucket].index(),
-                                      false);
+        while (!m_buckets[ibucket].empty() && dist_from_ideal_bucket <= distance_from_ideal_bucket(ibucket)) {
+            if (m_buckets[ibucket].truncated_hash() == bucket_entry::truncate_hash(hash) &&
+                compare_keys(key, KeySelect()(m_values[m_buckets[ibucket].index()]))) {
+                return std::make_pair(begin() + m_buckets[ibucket].index(), false);
             }
 
             ibucket = next_bucket(ibucket);
@@ -1506,9 +1334,7 @@ class ordered_hash
         }
 
         if (size() >= max_size()) {
-            TSL_OH_THROW_OR_TERMINATE(
-              std::length_error,
-              "We reached the maximum size for the hash table.");
+            TSL_OH_THROW_OR_TERMINATE(std::length_error, "We reached the maximum size for the hash table.");
         }
 
         if (grow_on_high_load()) {
@@ -1517,10 +1343,8 @@ class ordered_hash
         }
 
         m_values.emplace_back(std::forward<Args>(value_type_args)...);
-        insert_index(ibucket,
-                     dist_from_ideal_bucket,
-                     index_type(m_values.size() - 1),
-                     bucket_entry::truncate_hash(hash));
+        insert_index(
+          ibucket, dist_from_ideal_bucket, index_type(m_values.size() - 1), bucket_entry::truncate_hash(hash));
 
         return std::make_pair(std::prev(end()), true);
     }
@@ -1529,24 +1353,19 @@ class ordered_hash
      * Insert the element before insert_position.
      */
     template<class K, class... Args>
-    std::pair<iterator, bool> insert_at_position_impl(
-      typename values_container_type::const_iterator insert_position,
-      const K& key,
-      Args&&... value_type_args)
+    std::pair<iterator, bool> insert_at_position_impl(typename values_container_type::const_iterator insert_position,
+                                                      const K& key,
+                                                      Args&&... value_type_args)
     {
         const std::size_t hash = hash_key(key);
 
         std::size_t ibucket = bucket_for_hash(hash);
         std::size_t dist_from_ideal_bucket = 0;
 
-        while (!m_buckets[ibucket].empty() &&
-               dist_from_ideal_bucket <= distance_from_ideal_bucket(ibucket)) {
-            if (m_buckets[ibucket].truncated_hash() ==
-                  bucket_entry::truncate_hash(hash) &&
-                compare_keys(
-                  key, KeySelect()(m_values[m_buckets[ibucket].index()]))) {
-                return std::make_pair(begin() + m_buckets[ibucket].index(),
-                                      false);
+        while (!m_buckets[ibucket].empty() && dist_from_ideal_bucket <= distance_from_ideal_bucket(ibucket)) {
+            if (m_buckets[ibucket].truncated_hash() == bucket_entry::truncate_hash(hash) &&
+                compare_keys(key, KeySelect()(m_values[m_buckets[ibucket].index()]))) {
+                return std::make_pair(begin() + m_buckets[ibucket].index(), false);
             }
 
             ibucket = next_bucket(ibucket);
@@ -1554,9 +1373,7 @@ class ordered_hash
         }
 
         if (size() >= max_size()) {
-            TSL_OH_THROW_OR_TERMINATE(
-              std::length_error,
-              "We reached the maximum size for the hash table.");
+            TSL_OH_THROW_OR_TERMINATE(std::length_error, "We reached the maximum size for the hash table.");
         }
 
         if (grow_on_high_load()) {
@@ -1564,22 +1381,16 @@ class ordered_hash
             dist_from_ideal_bucket = 0;
         }
 
-        const index_type index_insert_position =
-          index_type(std::distance(m_values.cbegin(), insert_position));
+        const index_type index_insert_position = index_type(std::distance(m_values.cbegin(), insert_position));
 
 #ifdef TSL_OH_NO_CONTAINER_EMPLACE_CONST_ITERATOR
-        m_values.emplace(m_values.begin() +
-                           std::distance(m_values.cbegin(), insert_position),
+        m_values.emplace(m_values.begin() + std::distance(m_values.cbegin(), insert_position),
                          std::forward<Args>(value_type_args)...);
 #else
-        m_values.emplace(insert_position,
-                         std::forward<Args>(value_type_args)...);
+        m_values.emplace(insert_position, std::forward<Args>(value_type_args)...);
 #endif
 
-        insert_index(ibucket,
-                     dist_from_ideal_bucket,
-                     index_insert_position,
-                     bucket_entry::truncate_hash(hash));
+        insert_index(ibucket, dist_from_ideal_bucket, index_insert_position, bucket_entry::truncate_hash(hash));
 
         /*
          * The insertion didn't happend at the end of the m_values container,
@@ -1589,8 +1400,7 @@ class ordered_hash
             shift_indexes_in_buckets(index_insert_position + 1, 1);
         }
 
-        return std::make_pair(
-          iterator(m_values.begin() + index_insert_position), true);
+        return std::make_pair(iterator(m_values.begin() + index_insert_position), true);
     }
 
     void insert_index(std::size_t ibucket,
@@ -1610,8 +1420,7 @@ class ordered_hash
             ibucket = next_bucket(ibucket);
             dist_from_ideal_bucket++;
 
-            if (dist_from_ideal_bucket > REHASH_ON_HIGH_NB_PROBES__NPROBES &&
-                !m_grow_on_next_insert &&
+            if (dist_from_ideal_bucket > REHASH_ON_HIGH_NB_PROBES__NPROBES && !m_grow_on_next_insert &&
                 load_factor() >= REHASH_ON_HIGH_NB_PROBES__MIN_LOAD_FACTOR) {
                 // We don't want to grow the map now as we need this method to
                 // be noexcept. Do it on next insert.
@@ -1625,8 +1434,7 @@ class ordered_hash
 
     std::size_t distance_from_ideal_bucket(std::size_t ibucket) const noexcept
     {
-        const std::size_t ideal_bucket =
-          bucket_for_hash(m_buckets[ibucket].truncated_hash());
+        const std::size_t ideal_bucket = bucket_for_hash(m_buckets[ibucket].truncated_hash());
 
         if (ibucket >= ideal_bucket) {
             return ibucket - ideal_bucket;
@@ -1646,10 +1454,7 @@ class ordered_hash
         return (index < m_buckets_data.size()) ? index : 0;
     }
 
-    std::size_t bucket_for_hash(std::size_t hash) const noexcept
-    {
-        return hash & m_hash_mask;
-    }
+    std::size_t bucket_for_hash(std::size_t hash) const noexcept { return hash & m_hash_mask; }
 
     std::size_t iterator_to_index(const_iterator it) const noexcept
     {
@@ -1701,33 +1506,26 @@ class ordered_hash
     template<class Deserializer>
     void deserialize_impl(Deserializer& deserializer, bool hash_compatible)
     {
-        tsl_oh_assert(
-          m_buckets_data.empty()); // Current hash table must be empty
+        tsl_oh_assert(m_buckets_data.empty()); // Current hash table must be empty
 
-        const slz_size_type version =
-          deserialize_value<slz_size_type>(deserializer);
+        const slz_size_type version = deserialize_value<slz_size_type>(deserializer);
         // For now we only have one version of the serialization protocol.
         // If it doesn't match there is a problem with the file.
         if (version != SERIALIZATION_PROTOCOL_VERSION) {
-            TSL_OH_THROW_OR_TERMINATE(
-              std::runtime_error,
-              "Can't deserialize the ordered_map/set. "
-              "The protocol version header is invalid.");
+            TSL_OH_THROW_OR_TERMINATE(std::runtime_error,
+                                      "Can't deserialize the ordered_map/set. "
+                                      "The protocol version header is invalid.");
         }
 
-        const slz_size_type nb_elements =
-          deserialize_value<slz_size_type>(deserializer);
-        const slz_size_type bucket_count_ds =
-          deserialize_value<slz_size_type>(deserializer);
+        const slz_size_type nb_elements = deserialize_value<slz_size_type>(deserializer);
+        const slz_size_type bucket_count_ds = deserialize_value<slz_size_type>(deserializer);
         const float max_load_factor = deserialize_value<float>(deserializer);
 
-        if (max_load_factor < MAX_LOAD_FACTOR__MINIMUM ||
-            max_load_factor > MAX_LOAD_FACTOR__MAXIMUM) {
-            TSL_OH_THROW_OR_TERMINATE(
-              std::runtime_error,
-              "Invalid max_load_factor. Check that the serializer "
-              "and deserializer support floats correctly as they "
-              "can be converted implicitly to ints.");
+        if (max_load_factor < MAX_LOAD_FACTOR__MINIMUM || max_load_factor > MAX_LOAD_FACTOR__MAXIMUM) {
+            TSL_OH_THROW_OR_TERMINATE(std::runtime_error,
+                                      "Invalid max_load_factor. Check that the serializer "
+                                      "and deserializer support floats correctly as they "
+                                      "can be converted implicitly to ints.");
         }
 
         this->max_load_factor(max_load_factor);
@@ -1738,26 +1536,21 @@ class ordered_hash
         }
 
         if (!hash_compatible) {
-            reserve(numeric_cast<size_type>(
-              nb_elements, "Deserialized nb_elements is too big."));
+            reserve(numeric_cast<size_type>(nb_elements, "Deserialized nb_elements is too big."));
             for (slz_size_type el = 0; el < nb_elements; el++) {
                 insert(deserialize_value<value_type>(deserializer));
             }
         } else {
-            m_buckets_data.reserve(numeric_cast<size_type>(
-              bucket_count_ds, "Deserialized bucket_count is too big."));
-            m_buckets = m_buckets_data.data(),
-            m_hash_mask = m_buckets_data.capacity() - 1;
+            m_buckets_data.reserve(numeric_cast<size_type>(bucket_count_ds, "Deserialized bucket_count is too big."));
+            m_buckets = m_buckets_data.data(), m_hash_mask = m_buckets_data.capacity() - 1;
 
-            reserve_space_for_values(numeric_cast<size_type>(
-              nb_elements, "Deserialized nb_elements is too big."));
+            reserve_space_for_values(numeric_cast<size_type>(nb_elements, "Deserialized nb_elements is too big."));
             for (slz_size_type el = 0; el < nb_elements; el++) {
                 m_values.push_back(deserialize_value<value_type>(deserializer));
             }
 
             for (slz_size_type b = 0; b < bucket_count_ds; b++) {
-                m_buckets_data.push_back(
-                  bucket_entry::deserialize(deserializer));
+                m_buckets_data.push_back(bucket_entry::deserialize(deserializer));
             }
         }
     }
@@ -1780,10 +1573,7 @@ class ordered_hash
         return value + 1;
     }
 
-    static constexpr bool is_power_of_two(std::size_t value)
-    {
-        return value != 0 && (value & (value - 1)) == 0;
-    }
+    static constexpr bool is_power_of_two(std::size_t value) { return value != 0 && (value & (value - 1)) == 0; }
 
   public:
     static const size_type DEFAULT_INIT_BUCKETS_SIZE = 0;

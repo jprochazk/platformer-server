@@ -13,9 +13,7 @@ load_json_file(const std::string& path)
 
     std::ifstream config_file(full_path);
     if (config_file.bad()) {
-        ERRF("LOAD_JSON",
-             "Could not open file \"{}\", aborting execution...",
-             full_path);
+        ERRF("LOAD_JSON", "Could not open file \"{}\", aborting execution...", full_path);
         abort();
     }
 

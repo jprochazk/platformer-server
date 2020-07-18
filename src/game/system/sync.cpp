@@ -24,14 +24,13 @@ get_components(const game::registry& registry, const entt::entity& entity)
 }
 
 network::packet::server::state
-serialize_state(const game::registry& registry,
-                const std::unordered_set<entt::entity>& entities)
+serialize_state(const game::registry& registry, const std::unordered_set<entt::entity>& entities)
 {
     network::packet::server::state state{};
     state.entities.reserve(entities.size());
     for (const auto& entity : entities) {
-        state.entities.push_back(network::packet::server::entity{
-          static_cast<uint32_t>(entity), get_components(registry, entity) });
+        state.entities.push_back(
+          network::packet::server::entity{ static_cast<uint32_t>(entity), get_components(registry, entity) });
     }
     return state;
 }
@@ -52,17 +51,15 @@ sync::update()
     auto& registry = world->get_registry();
     auto& map = world->get_map();
 
-    registry.view<component::session>().each(
-      [&](const entt::entity& e, component::session& session) {
-          std::shared_ptr<socket_base> sock = session.socket.lock();
-          if (!sock)
-              return;
+    registry.view<component::session>().each([&](const entt::entity& e, component::session& session) {
+        std::shared_ptr<socket_base> sock = session.socket.lock();
+        if (!sock)
+            return;
 
-          // TEMP many small allocations here
-          sock->send(packet::serialize(
-            common::to_underlying(server::opcode::STATE),
-            serialize_state(registry, map.get_zone(e).get_entities())));
-      });
+        // TEMP many small allocations here
+        sock->send(packet::serialize(common::to_underlying(server::opcode::STATE),
+                                     serialize_state(registry, map.get_zone(e).get_entities())));
+    });
 }
 
 } // namespace system

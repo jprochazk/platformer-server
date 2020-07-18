@@ -11,9 +11,7 @@ class socket_handler;
 class socket_listener : public std::enable_shared_from_this<socket_listener>
 {
   public:
-    socket_listener(net::io_context& ioc,
-                    tcp::endpoint endpoint,
-                    std::shared_ptr<socket_handler> socket_handler = {});
+    socket_listener(net::io_context& ioc, tcp::endpoint endpoint, std::shared_ptr<socket_handler> socket_handler = {});
 
     ~socket_listener() = default;
 

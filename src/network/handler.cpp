@@ -67,9 +67,7 @@ handler::handler(uint16_t opcode, handler::function_type fn)
 {}
 
 void
-handler::operator()(game::world& world,
-                    const entt::entity& entity,
-                    const json& packet)
+handler::operator()(game::world& world, const entt::entity& entity, const json& packet)
 {
     if (!fn)
         return;
@@ -78,8 +76,7 @@ handler::operator()(game::world& world,
 
 static const std::vector<handler> HANDLER_TABLE = {
     { common::to_underlying(network::client::opcode::INPUT), &handle_input },
-    { common::to_underlying(network::client::opcode::TOGGLE_MTYPE),
-      &handle_toggle_mtype },
+    { common::to_underlying(network::client::opcode::TOGGLE_MTYPE), &handle_toggle_mtype },
 };
 static const handler DEFAULT_HANDLER = { (uint16_t)-1, nullptr };
 

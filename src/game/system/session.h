@@ -35,13 +35,10 @@ class session
 
     void update() override;
 
-    void on_open(uint32_t id,
-                 std::weak_ptr<network::socket_base> socket) override;
+    void on_open(uint32_t id, std::weak_ptr<network::socket_base> socket) override;
     void on_close(uint32_t id) override;
     void on_message(uint32_t id, std::vector<uint8_t>&& data) override;
-    void on_error(uint32_t id,
-                  std::string_view what,
-                  beast::error_code error) override;
+    void on_error(uint32_t id, std::string_view what, beast::error_code error) override;
 
   private:
     void handle_connections();
