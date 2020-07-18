@@ -45,7 +45,7 @@ struct position
 // COMPONENT STORAGE
 struct component_storage
 {
-    std::optional<position> position;
+    std::optional<position> pos;
 };
 
 // ENTITY

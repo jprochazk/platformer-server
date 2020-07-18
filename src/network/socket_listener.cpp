@@ -8,8 +8,7 @@
 inline void
 fail(std::string_view what, beast::error_code ec)
 {
-    if (ec == net::error::operation_aborted ||
-        ec == net::error::connection_aborted ||
+    if (ec == net::error::operation_aborted || ec == net::error::connection_aborted ||
         ec == beast::websocket::error::closed)
         return;
 
@@ -21,8 +20,7 @@ struct default_socket_handler : public network::socket_handler
     std::mutex socket_mutex;
     std::map<uint32_t, std::weak_ptr<network::socket_base>> sockets;
 
-    virtual void on_open(uint32_t id,
-                         std::weak_ptr<network::socket_base> socket) override
+    virtual void on_open(uint32_t id, std::weak_ptr<network::socket_base> socket) override
     {
         std::lock_guard<std::mutex> lock(socket_mutex);
         INFOF("SOCKET_LISTENER", "Socket ID {} -> opened", id);
@@ -39,10 +37,7 @@ struct default_socket_handler : public network::socket_handler
     virtual void on_message(uint32_t id, std::vector<uint8_t>&& data) override
     {
         std::lock_guard<std::mutex> lock(socket_mutex);
-        INFOF("SOCKET_LISTENER",
-              "Socket ID {} -> message size {}",
-              id,
-              data.size());
+        INFOF("SOCKET_LISTENER", "Socket ID {} -> message size {}", id, data.size());
         // echo the message
         if (auto socket = sockets.find(id); socket != sockets.end()) {
             if (auto ptr = socket->second.lock()) {
@@ -51,21 +46,14 @@ struct default_socket_handler : public network::socket_handler
         }
     }
 
-    virtual void on_error(uint32_t id,
-                          std::string_view what,
-                          beast::error_code error) override
+    virtual void on_error(uint32_t id, std::string_view what, beast::error_code error) override
     {
-        if (error == net::error::operation_aborted ||
-            error == net::error::connection_aborted ||
+        if (error == net::error::operation_aborted || error == net::error::connection_aborted ||
             error == beast::websocket::error::closed)
             return;
 
         // just log the error
-        ERRF("SOCKET_LISTENER",
-             "Socket ID {} -> error: {}, {}",
-             id,
-             what,
-             error.message());
+        ERRF("SOCKET_LISTENER", "Socket ID {} -> error: {}, {}", id, what, error.message());
     }
 };
 
@@ -116,8 +104,7 @@ void
 socket_listener::open()
 {
     acceptor_.async_accept(net::make_strand(ioc_),
-                           beast::bind_front_handler(
-                             &socket_listener::on_accept, shared_from_this()));
+                           beast::bind_front_handler(&socket_listener::on_accept, shared_from_this()));
 }
 
 void
@@ -126,14 +113,11 @@ socket_listener::on_accept(beast::error_code ec, tcp::socket socket)
     if (ec) {
         return fail("socket_listener::on_accept", ec);
     } else {
-        std::make_shared<network::socket>(
-          socket_id_sequence_.get(), std::move(socket), socket_handler_)
-          ->open();
+        std::make_shared<network::socket>(socket_id_sequence_.get(), std::move(socket), socket_handler_)->open();
     }
 
     acceptor_.async_accept(net::make_strand(ioc_),
-                           beast::bind_front_handler(
-                             &socket_listener::on_accept, shared_from_this()));
+                           beast::bind_front_handler(&socket_listener::on_accept, shared_from_this()));
 }
 
 } // namespace network

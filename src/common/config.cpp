@@ -20,16 +20,14 @@ config::load(const std::string& path)
 
     std::ifstream config_file(full_path);
     if (config_file.bad()) {
-        ERRF("CONFIG",
-             "Could not open file \"{}\", aborting execution...",
-             full_path);
+        ERRF("CONFIG", "Could not open file \"{}\", aborting execution...", full_path);
         abort();
     }
 
     instance.path_ = std::move(full_path);
     try {
         instance.content_ = json::parse(config_file);
-    } catch (json::exception e) {
+    } catch (const json::exception& e) {
         ERRF("CONFIG", "{}", e.what());
         abort();
     }

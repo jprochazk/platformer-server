@@ -21,8 +21,7 @@ struct settings
 
     std::string to_string() const
     {
-        return fmt::format(
-          "postgresql://{}:{}@{}:{}/{}", user, password, host, port, name);
+        return fmt::format("postgresql://{}:{}@{}:{}/{}", user, password, host, port, name);
     }
 };
 
@@ -62,8 +61,7 @@ connection::execute(const std::string& name, Args&&... args)
     std::lock_guard<std::mutex> lock(*database_mutex_);
 
     if (prepared_statements_.find(name) == prepared_statements_.end())
-        throw std::runtime_error(
-          fmt::format("No prepared statement named \"{}\"", name));
+        throw std::runtime_error(fmt::format("No prepared statement named \"{}\"", name));
 
     pqxx::work w(*connection_);
     auto result = w.exec_prepared(name, args...);
@@ -79,8 +77,7 @@ connection::async_execute(const std::string& name, Args&&... args)
     std::lock_guard<std::mutex> lock(*database_mutex_);
 
     if (prepared_statements_.find(name) == prepared_statements_.end())
-        throw std::runtime_error(
-          fmt::format("No prepared statement named \"{}\"", name));
+        throw std::runtime_error(fmt::format("No prepared statement named \"{}\"", name));
 
     auto m = database_mutex_;
     auto c = connection_;
