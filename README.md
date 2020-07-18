@@ -13,7 +13,7 @@ Currently, the server has the following features:
 * PostgreSQL database connection with asynchronous queries
     * Currently implemented using boost::async, will be implemented using boost.asio in the future
 * JSON configuration files
-* Exception-safe packet handling
+* Packet handling
 * AABB collision detection + resolution
 * Game state synchronization
 
