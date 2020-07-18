@@ -15,6 +15,10 @@ compile_commands.json
 # vscode
 .vscode
 
+# gnu make
+Makefile
+server.make
+
 # visual studio files
 .vs
 **.sln
