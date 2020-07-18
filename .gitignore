@@ -12,8 +12,11 @@ graph_info.json
 compile_commands.json
 .clangd
 
+# vscode
+.vscode
+
 # visual studio files
-.vs/
+.vs
 **.sln
 **.vcxproj
 **.vcxproj.filters

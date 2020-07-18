@@ -58,7 +58,7 @@ class session
     queue<uint32_t> disconnection_queue_;
 
     std::shared_ptr<network::packet::handler_table> handler_table_;
-    std::shared_ptr<world> world;
+    std::shared_ptr<game::world> world;
 }; // class session
 
 } // namespace system

@@ -29,7 +29,7 @@ config::load(const std::string& path)
     instance.path_ = std::move(full_path);
     try {
         instance.content_ = json::parse(config_file);
-    } catch (json::exception e) {
+    } catch (const json::exception& e) {
         ERRF("CONFIG", "{}", e.what());
         abort();
     }

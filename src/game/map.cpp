@@ -89,7 +89,7 @@ map::load(json data)
         }
         INFOF("MAP", "Loaded {} zones", map.zones.size());
         return map;
-    } catch (json::exception e) {
+    } catch (const json::exception& e) {
         spdlog::error("MAP", "Error while loading: {}", e.what());
         abort();
     }

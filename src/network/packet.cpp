@@ -34,7 +34,7 @@ to_json(json& json, const position& pos)
 void
 to_json(json& json, const component_storage& cs)
 {
-    json = { { "p", cs.position } };
+    json = { { "p", cs.pos } };
 }
 void
 to_json(json& json, const entity& entity)
@@ -61,7 +61,7 @@ from_json(const json& json, position& pos)
 void
 from_json(const json& json, component_storage& cs)
 {
-    try_get_to(json, "p", cs.position);
+    try_get_to(json, "p", cs.pos);
 }
 void
 from_json(const json& json, entity& entity)

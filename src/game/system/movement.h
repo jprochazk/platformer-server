@@ -10,7 +10,7 @@ namespace system {
 
 class movement : public system_base
 {
-    std::shared_ptr<world> world;
+    std::shared_ptr<game::world> world;
 
   public:
     movement(std::shared_ptr<game::world> world);

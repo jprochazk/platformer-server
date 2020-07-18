@@ -63,7 +63,7 @@ connection::prepare_statement(const std::string& name, const std::string& query)
     try {
         connection_->prepare(name, query);
         prepared_statements_.insert(name);
-    } catch (std::exception e) {
+    } catch (const std::exception& e) {
         ERRF("DB::CONN",
              "Failed to prepare statement {{ \"{}\": \"{}\" }}, {}",
              name,

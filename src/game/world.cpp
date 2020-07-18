@@ -4,6 +4,25 @@
 
 namespace game {
 
+void
+registry::destroy_queued()
+{
+    super::destroy(destroy_queue_.begin(), destroy_queue_.end());
+    destroy_queue_.clear();
+}
+
+void
+registry::destroy(const entity_type entity)
+{
+    destroy_queue_.push_back(entity);
+}
+
+void
+registry::destroy(const entity_type entity, const version_type)
+{
+    destroy_queue_.push_back(entity);
+}
+
 world::world()
   : registry{}
   , database{}
@@ -53,13 +72,13 @@ world::update()
     registry.destroy_queued();
 }
 
-world::registry_t&
+game::registry&
 world::get_registry()
 {
     return registry;
 }
 
-world::registry_t const&
+game::registry const&
 world::get_registry() const
 {
     return registry;
@@ -71,19 +90,19 @@ world::get_database()
     return database;
 }
 
-world::dispatcher_t&
+event::dispatcher&
 world::get_dispatcher()
 {
     return dispatcher;
 }
 
-world::map_t&
+game::map&
 world::get_map()
 {
     return map;
 }
 
-world::map_t const&
+game::map const&
 world::get_map() const
 {
     return map;

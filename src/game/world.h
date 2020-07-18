@@ -22,50 +22,33 @@ class system_base;
 
 class world;
 
-template<typename Entity>
-class registry : public entt::basic_registry<Entity>
+class registry : public entt::basic_registry<entt::entity>
 {
     friend class world;
-    using super = entt::basic_registry<Entity>;
-    using entity_t = typename super::entity_type;
-    using version_t = typename super::version_type;
-
-    std::vector<entity_t> destroy_queue_;
-
-    void destroy_queued()
-    {
-        super::destroy(destroy_queue_.begin(), destroy_queue_.end());
-        destroy_queue_.clear();
-    }
+    using super = entt::basic_registry<entt::entity>;
 
   public:
-    void destroy(const entity_t entity) { destroy_queue_.push_back(entity); }
-
-    void destroy(const entity_t entity, const version_t)
-    {
-        destroy_queue_.push_back(entity);
-    }
+    void destroy(const entity_type entity);
+    void destroy(const entity_type entity, const version_type);
 
     template<typename It>
     void destroy(It first, It last)
     {
         std::copy(first, last, std::back_inserter(destroy_queue_));
     }
+
+  private:
+    std::vector<entity_type> destroy_queue_;
+
+    void destroy_queued();
 };
 
 class world
 {
-    friend class world_builder;
-
   public:
     world();
     world(std::optional<database::settings> settings = {},
           std::optional<json> map_data = {});
-
-    using entity_t = entt::entity;
-    using registry_t = registry<entity_t>;
-    using dispatcher_t = game::event::dispatcher;
-    using map_t = game::map;
 
     void add_system(const std::string& name,
                     std::shared_ptr<system_base> system);
@@ -75,18 +58,18 @@ class world
 
     void remove_system(const std::string& name);
     void update();
-    registry_t& get_registry();
-    registry_t const& get_registry() const;
+    game::registry& get_registry();
+    game::registry const& get_registry() const;
     std::shared_ptr<database::connection> get_database();
-    dispatcher_t& get_dispatcher();
-    map_t& get_map();
-    map_t const& get_map() const;
+    event::dispatcher& get_dispatcher();
+    game::map& get_map();
+    game::map const& get_map() const;
 
   private:
-    registry_t registry;
+    game::registry registry;
     std::shared_ptr<database::connection> database;
-    dispatcher_t dispatcher;
-    map_t map;
+    event::dispatcher dispatcher;
+    game::map map;
     tsl::ordered_map<std::string, std::shared_ptr<system_base>> systems;
 };
 

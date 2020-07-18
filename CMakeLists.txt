@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 include(${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
 
 conan_cmake_run(CONANFILE conanfile.txt
+                SETTINGS compiler.libcxx=libstdc++11
                 BASIC_SETUP
                 BUILD missing)
 

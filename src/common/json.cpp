@@ -21,7 +21,7 @@ load_json_file(const std::string& path)
 
     try {
         return json::parse(config_file);
-    } catch (json::exception e) {
+    } catch (const json::exception& e) {
         ERRF("LOAD_JSON", "{}", e.what());
         abort();
     }
