@@ -121,7 +121,7 @@ main()
                     world->get_system<game::system::session>("session"), // socket handler
                     tcp::endpoint{ net::ip::make_address(server_settings.ip), server_settings.port });
 
-    INFO("MAIN", "Starting game loop");
+    INFO("MAIN", "Starting main game loop");
     auto last_tick = util::time::now();
     while (!exitSignal.load(std::memory_order_acquire)) {
         auto now = util::time::now();
