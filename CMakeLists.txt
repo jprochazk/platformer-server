@@ -5,9 +5,25 @@ project(platformer-server VERSION "0.1.0" LANGUAGES CXX)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS SKIP_STD)
+include(${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
 
+conan_cmake_run(CONANFILE conanfile.txt
+                BASIC_SETUP
+                BUILD missing)
+
+add_executable(server ${CMAKE_SOURCE_DIR}/src/main.cpp)
+
+if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
+    target_compile_options(server PRIVATE -Wall)
+    target_compile_options(server PRIVATE -Wextra)
+elseif(DEFINED MSVC)
+    target_compile_options(server PRIVATE /W3)
+endif()
+
+target_link_libraries(server ${CONAN_LIBS})
+target_precompile_headers(server PRIVATE ${CMAKE_SOURCE_DIR}/src/pch.h)
+target_include_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_compile_features(server PRIVATE cxx_std_17)
 
 set(
     MY_SOURCES
@@ -28,17 +44,4 @@ set(
     src/network/socket_listener.cpp
 )
 
-add_executable(server ${CMAKE_SOURCE_DIR}/src/main.cpp)
-conan_target_link_libraries(server)
-
-if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"))
-    target_compile_options(server PRIVATE -Wall)
-    target_compile_options(server PRIVATE -Wextra)
-elseif(DEFINED MSVC)
-    target_compile_options(server PRIVATE /W3)
-endif()
-
-target_precompile_headers(server PRIVATE ${CMAKE_SOURCE_DIR}/src/pch.h)
-target_include_directories(server PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_compile_features(server PRIVATE cxx_std_17)
 target_sources(server PRIVATE ${MY_SOURCES})
